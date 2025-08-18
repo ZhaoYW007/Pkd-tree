@@ -88,16 +88,20 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+    printf("------------- Finish Data Init ------------\n");
 
     buildTree<vectorT>(NR_DIMENSION, vectors_to_insert, 1, pkd);
+    printf("------------- Finish Tree Build ------------\n");
 
 #ifdef USE_PAPI
     papi_init_program(parlay::num_workers());
 #endif
 
     if(test_type == 1) {       
+        printf("------------- Insert ------------\n");
         parlay::sequence<vectorT> vec_to_search(test_batch_size);
         for(int i = 0, offset = total_insert_size; i < test_round; i++, offset += test_batch_size) {
+            printf("Round: %d", i);
             if(file_name == "uniform") {
                 parlay::parallel_for(0, test_batch_size, [&](size_t j) {
                     vec_to_search[j].pnt[0] = abs(rn_gen::parallel_rand());
@@ -125,9 +129,11 @@ int main(int argc, char *argv[]) {
         }
     }
     else if(test_type == 2 || test_type == 3) {
+        printf("------------- Box ------------\n");
         double box_edge_size = COORD_MAX / pow(total_insert_size / expected_box_size, 1.0 / NR_DIMENSION) / 2.0;
         parlay::sequence<box> boxes(test_batch_size);
         for(int i = 0, offset = total_insert_size; i < test_round; i++, offset += test_batch_size) {
+            printf("Round: %d", i);
             if(file_name == "uniform") {
                 parlay::parallel_for(0, test_batch_size, [&](size_t j) {
                     boxes[j].first.pnt[0] = abs(rn_gen::parallel_rand());
@@ -169,8 +175,10 @@ int main(int argc, char *argv[]) {
         }
     }
     else if(test_type == 4) {
+        printf("------------- kNN ------------\n");
         parlay::sequence<vectorT> vec_to_search(test_batch_size);
         for(int i = 0, offset = total_insert_size; i < test_round; i++, offset += test_batch_size) {
+            printf("Round: %d", i);
             if(file_name == "uniform") {
                 parlay::parallel_for(0, test_batch_size, [&](size_t j) {
                     vec_to_search[j].pnt[0] = abs(rn_gen::parallel_rand());
