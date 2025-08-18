@@ -66,6 +66,7 @@ int main(int argc, char *argv[]) {
     coord COORD_MAX = INT64_MAX;
 
     if(file_name == "uniform") {
+        printf("Uniform\n");
         vectors_to_insert.resize(total_insert_size);
         parlay::parallel_for(0, vectors_to_insert.size(), [&](size_t i) {
             vectors_to_insert[i].pnt[0] = abs(rn_gen::parallel_rand());
@@ -74,6 +75,7 @@ int main(int argc, char *argv[]) {
         });
     }
     else {
+        printf("File: %s\n", file_name.c_str());
         read_points(file_name.c_str(), vectors_from_file, 100);
         vectors_to_insert = parlay::tabulate(total_insert_size, [&](size_t i) { return vectors_from_file[i]; });
         if(test_type == 2 || test_type == 3) {
@@ -101,7 +103,7 @@ int main(int argc, char *argv[]) {
         printf("------------- Insert ------------\n");
         parlay::sequence<vectorT> vec_to_search(test_batch_size);
         for(int i = 0, offset = total_insert_size; i < test_round; i++, offset += test_batch_size) {
-            printf("Round: %d", i);
+            printf("Round: %d\n", i);
             if(file_name == "uniform") {
                 parlay::parallel_for(0, test_batch_size, [&](size_t j) {
                     vec_to_search[j].pnt[0] = abs(rn_gen::parallel_rand());
@@ -133,7 +135,7 @@ int main(int argc, char *argv[]) {
         double box_edge_size = COORD_MAX / pow(total_insert_size / expected_box_size, 1.0 / NR_DIMENSION) / 2.0;
         parlay::sequence<box> boxes(test_batch_size);
         for(int i = 0, offset = total_insert_size; i < test_round; i++, offset += test_batch_size) {
-            printf("Round: %d", i);
+            printf("Round: %d\n", i);
             if(file_name == "uniform") {
                 parlay::parallel_for(0, test_batch_size, [&](size_t j) {
                     boxes[j].first.pnt[0] = abs(rn_gen::parallel_rand());
@@ -178,7 +180,7 @@ int main(int argc, char *argv[]) {
         printf("------------- kNN ------------\n");
         parlay::sequence<vectorT> vec_to_search(test_batch_size);
         for(int i = 0, offset = total_insert_size; i < test_round; i++, offset += test_batch_size) {
-            printf("Round: %d", i);
+            printf("Round: %d\n", i);
             if(file_name == "uniform") {
                 parlay::parallel_for(0, test_batch_size, [&](size_t j) {
                     vec_to_search[j].pnt[0] = abs(rn_gen::parallel_rand());
