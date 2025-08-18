@@ -31,13 +31,7 @@ int test_batch_size;
 int test_round;
 int test_type; /* 1: Point search; 2: Box range count; 3: Box fetch; 4: kNN */
 int expected_box_size;
-bool print_timer;
-bool debug_print;
-int top_level_threads;
-std::string interface_type;
 std::string file_name;
-COORD input_coord_max[10];
-double varden_scale = 0.0;
 
 void host_parse_arguments(int argc, char *argv[]) {
     file_name          = (argc >= 2  ?      argv[1]    : "uniform");
@@ -47,16 +41,6 @@ void host_parse_arguments(int argc, char *argv[]) {
     test_batch_size    = (argc >= 6  ? stoi(argv[5] )  : 10000   );
     test_round         = (argc >= 7  ? stoi(argv[6] )  : 2       );
     expected_box_size  = (argc >= 8  ? stoi(argv[7] )  : 100     );
-    varden_scale       = (argc >= 9  ? stod(argv[8] )  : 0.0     );
-    input_coord_max[0] = (argc >= 10 ? stoi(argv[9] )  : INT32_MAX );
-    input_coord_max[1] = (argc >= 11 ? stoi(argv[10] ) : INT32_MAX );
-    input_coord_max[2] = (argc >= 12 ? stoi(argv[11] ) : INT32_MAX );
-    // top_level_threads  = (argc >= 12 ? stoi(argv[11]) : 1       );
-    // print_timer        = (argc >= 13 ? stoi(argv[12]) : true    );
-    // debug_print        = (argc >= 14 ? stoi(argv[13]) : false   );
-    top_level_threads = 1;
-    print_timer = true;
-    debug_print = false;
 }
 
 /**
@@ -67,6 +51,7 @@ int main(int argc, char *argv[]) {
     using tree = ParallelKDtree<vectorT>;
     using box = typename tree::box;
     using node = typename tree::node;
+    using nn_pair = std::pair<std::reference_wrapper<point>, coord>;
 
     printf("------------------- Start ---------------------\n");
     host_parse_arguments(argc, argv);
@@ -77,7 +62,7 @@ int main(int argc, char *argv[]) {
     parlay::sequence<vectorT> vectors_from_file(1);
     parlay::sequence<vectorT> vectors_to_insert(1);
     size_t varden_counter = 0;
-    double COORD_MAX = INT64_MAX;
+    coord COORD_MAX = INT64_MAX;
 
     if(file_name == "uniform") {
         vectors_to_insert.resize(total_insert_size);
@@ -92,11 +77,11 @@ int main(int argc, char *argv[]) {
         vectors_to_insert = parlay::tabulate(total_insert_size, [&](size_t i) { return vectors_from_file[i]; });
         if(test_type == 2 || test_type == 3) {
             for(int i = 0; i < NR_DIMENSION; i++) {
-                double gap = parlay::max_element(parlay::delayed_tabulate(vectors_from_file.size(), [&](size_t j) {
+                coord gap = parlay::reduce(parlay::delayed_tabulate(vectors_from_file.size(), [&](size_t j) {
                     return vectors_from_file[j].pnt[i];
-                })) - parlay::min_element(parlay::delayed_tabulate(vectors_from_file.size(), [&](size_t j) {
+                }), parlay::maximum<coord>()) - parlay::reduce(parlay::delayed_tabulate(vectors_from_file.size(), [&](size_t j) {
                     return vectors_from_file[j].pnt[i];
-                }));
+                }), parlay::minimum<coord>());
                 if(i == 0) COORD_MAX = gap;
                 else if(gap > COORD_MAX) COORD_MAX = gap;
             }
