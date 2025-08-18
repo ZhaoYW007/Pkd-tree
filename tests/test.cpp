@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
             node* KDParallelRoot = pkd.get_root();
             auto bx = pkd.get_root_box();
             parlay::sequence<kBoundedQueue<point, nn_pair>> bq =
-                parlay::sequence<kBoundedQueue<point, nn_pair>>::uninitialized(n);
+                parlay::sequence<kBoundedQueue<point, nn_pair>>::uninitialized(test_batch_size);
 #ifdef USE_PAPI
             papi_reset_counters();
             papi_turn_counters(true);
