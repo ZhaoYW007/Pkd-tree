@@ -136,16 +136,16 @@ typename ParallelKDtree<point>::node* ParallelKDtree<point>::batchInsert_recusiv
             In.begin(), In.end(), [&](const point& p) { return Num::Lt(p.pnt[TI->split.second], TI->split.first); });
 
         //* rebuild
-        if (inbalance_node(TI->left->size + _2ndGroup.begin() - In.begin(), TI->size + n)) {
+        if (inbalance_node(TI->left->size + _2ndGroup - In.begin(), TI->size + n)) {
             return rebuild_with_insert(T, In, d, DIM);
         }
         //* continue
         node *L, *R;
         d = (d + 1) % DIM;
-        L = batchInsert_recusive(TI->left, In.cut(0, _2ndGroup.begin() - In.begin()),
-                                 Out.cut(0, _2ndGroup.begin() - In.begin()), d, DIM);
-        R = batchInsert_recusive(TI->right, In.cut(_2ndGroup.begin() - In.begin(), n),
-                                 Out.cut(_2ndGroup.begin() - In.begin(), n), d, DIM);
+        L = batchInsert_recusive(TI->left, In.cut(0, _2ndGroup - In.begin()),
+                                 Out.cut(0, _2ndGroup - In.begin()), d, DIM);
+        R = batchInsert_recusive(TI->right, In.cut(_2ndGroup - In.begin(), n),
+                                 Out.cut(_2ndGroup - In.begin(), n), d, DIM);
         update_interior(T, L, R);
         assert(T->size == L->size + R->size && TI->split.second >= 0 && TI->is_leaf == false);
         return T;

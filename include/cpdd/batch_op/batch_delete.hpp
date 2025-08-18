@@ -195,7 +195,7 @@ typename ParallelKDtree<point>::node_box ParallelKDtree<point>::batchDelete_recu
             In.begin(), In.end(), [&](const point& p) { return Num::Lt(p.pnt[TI->split.second], TI->split.first); });
 
         bool putTomb =
-            hasTomb && (inbalance_node(TI->left->size - (_2ndGroup.begin() - In.begin()), TI->size - In.size()) ||
+            hasTomb && (inbalance_node(TI->left->size - (_2ndGroup - In.begin()), TI->size - In.size()) ||
                         TI->size - In.size() < THIN_LEAVE_WRAP);
         hasTomb = putTomb ? false : hasTomb;
         assert(putTomb ? (!hasTomb) : true);
@@ -208,11 +208,11 @@ typename ParallelKDtree<point>::node_box ParallelKDtree<point>::batchDelete_recu
         rbox.first.pnt[TI->split.second] = TI->split.first;
 
         auto [L, Lbox] =
-            batchDelete_recursive(TI->left, lbox, In.cut(0, _2ndGroup.begin() - In.begin()),
-                                  Out.cut(0, _2ndGroup.begin() - In.begin()), nextDim, DIM, hasTomb, FullCoveredTag());
+            batchDelete_recursive(TI->left, lbox, In.cut(0, _2ndGroup - In.begin()),
+                                  Out.cut(0, _2ndGroup - In.begin()), nextDim, DIM, hasTomb, FullCoveredTag());
         auto [R, Rbox] =
-            batchDelete_recursive(TI->right, rbox, In.cut(_2ndGroup.begin() - In.begin(), n),
-                                  Out.cut(_2ndGroup.begin() - In.begin(), n), nextDim, DIM, hasTomb, FullCoveredTag());
+            batchDelete_recursive(TI->right, rbox, In.cut(_2ndGroup - In.begin(), n),
+                                  Out.cut(_2ndGroup - In.begin(), n), nextDim, DIM, hasTomb, FullCoveredTag());
 
         TI->aug_flag = hasTomb ? false : TI->size > this->SERIAL_BUILD_CUTOFF;
         update_interior(T, L, R);
@@ -313,11 +313,11 @@ typename ParallelKDtree<point>::node_box ParallelKDtree<point>::batchDelete_recu
         rbox.first.pnt[TI->split.second] = TI->split.first;
 
         auto [L, Lbox] =
-            batchDelete_recursive(TI->left, lbox, In.cut(0, _2ndGroup.begin() - In.begin()),
-                                  Out.cut(0, _2ndGroup.begin() - In.begin()), nextDim, DIM, PartialCoverTag());
+            batchDelete_recursive(TI->left, lbox, In.cut(0, _2ndGroup - In.begin()),
+                                  Out.cut(0, _2ndGroup - In.begin()), nextDim, DIM, PartialCoverTag());
         auto [R, Rbox] =
-            batchDelete_recursive(TI->right, rbox, In.cut(_2ndGroup.begin() - In.begin(), n),
-                                  Out.cut(_2ndGroup.begin() - In.begin(), n), nextDim, DIM, PartialCoverTag());
+            batchDelete_recursive(TI->right, rbox, In.cut(_2ndGroup - In.begin(), n),
+                                  Out.cut(_2ndGroup - In.begin(), n), nextDim, DIM, PartialCoverTag());
 
         update_interior(T, L, R);
         assert(T->size == L->size + R->size && TI->split.second >= 0 && TI->is_leaf == false);
