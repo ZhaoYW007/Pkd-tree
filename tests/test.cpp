@@ -56,6 +56,9 @@ int main(int argc, char *argv[]) {
 
     printf("------------------- Start ---------------------\n");
     host_parse_arguments(argc, argv);
+    srand(0);
+    rn_gen::init();
+    std::chrono::high_resolution_clock::time_point start_time, end_time;
 
     printf("------------- Data Structure Init ------------\n");
     tree pkd;
@@ -103,7 +106,7 @@ int main(int argc, char *argv[]) {
         printf("------------- Insert ------------\n");
         parlay::sequence<vectorT> vec_to_search(test_batch_size);
         for(int i = 0, offset = total_insert_size; i < test_round; i++, offset += test_batch_size) {
-            printf("Round: %d\n", i);
+            printf("Round: %d; Time: ", i);
             if(file_name == "uniform") {
                 parlay::parallel_for(0, test_batch_size, [&](size_t j) {
                     vec_to_search[j].pnt[0] = abs(rn_gen::parallel_rand());
@@ -122,12 +125,16 @@ int main(int argc, char *argv[]) {
             papi_check_counters(parlay::worker_id());
             papi_wait_counters(true, parlay::num_workers());
 #endif
+            start_time = std::chrono::high_resolution_clock::now();
             pkd.batchInsert(parlay::make_slice(vec_to_search), NR_DIMENSION);
+            end_time = std::chrono::high_resolution_clock::now();
 #ifdef USE_PAPI
             papi_turn_counters(false);
             papi_check_counters(parlay::worker_id());
             papi_wait_counters(false, parlay::num_workers());
 #endif
+            auto d = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
+            printf("%f\n", d.count());
         }
     }
     else if(test_type == 2 || test_type == 3) {
@@ -135,7 +142,7 @@ int main(int argc, char *argv[]) {
         double box_edge_size = COORD_MAX / pow(total_insert_size / expected_box_size, 1.0 / NR_DIMENSION) / 2.0;
         parlay::sequence<box> boxes(test_batch_size);
         for(int i = 0, offset = total_insert_size; i < test_round; i++, offset += test_batch_size) {
-            printf("Round: %d\n", i);
+            printf("Round: %d; Time: ", i);
             if(file_name == "uniform") {
                 parlay::parallel_for(0, test_batch_size, [&](size_t j) {
                     boxes[j].first.pnt[0] = abs(rn_gen::parallel_rand());
@@ -161,6 +168,7 @@ int main(int argc, char *argv[]) {
         papi_check_counters(parlay::worker_id());
         papi_wait_counters(true, parlay::num_workers());
 #endif
+        start_time = std::chrono::high_resolution_clock::now();
         parlay::parallel_for(0, test_batch_size, [&](size_t j) {
             size_t visLeafNum, visInterNum;
             size_t cnt = pkd.range_count(boxes[j], visLeafNum, visInterNum);
@@ -169,18 +177,20 @@ int main(int argc, char *argv[]) {
                 pkd.range_query_serial(boxes[j], res);
             }
         });
+        end_time = std::chrono::high_resolution_clock::now();
 #ifdef USE_PAPI
         papi_turn_counters(false);
         papi_check_counters(parlay::worker_id());
         papi_wait_counters(false, parlay::num_workers());
 #endif
-        }
+        auto d = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
+        printf("%f\n", d.count());
     }
     else if(test_type == 4) {
         printf("------------- kNN ------------\n");
         parlay::sequence<vectorT> vec_to_search(test_batch_size);
         for(int i = 0, offset = total_insert_size; i < test_round; i++, offset += test_batch_size) {
-            printf("Round: %d\n", i);
+            printf("Round: %d; Time: ", i);
             if(file_name == "uniform") {
                 parlay::parallel_for(0, test_batch_size, [&](size_t j) {
                     vec_to_search[j].pnt[0] = abs(rn_gen::parallel_rand());
@@ -203,15 +213,19 @@ int main(int argc, char *argv[]) {
             papi_check_counters(parlay::worker_id());
             papi_wait_counters(true, parlay::num_workers());
 #endif
+            start_time = std::chrono::high_resolution_clock::now();
             parlay::parallel_for(0, test_batch_size, [&](size_t j) {
                 size_t visNodeNum = 0;
                 pkd.k_nearest(KDParallelRoot, vec_to_search[j], NR_DIMENSION, bq[j], bx, visNodeNum);
             });
+            end_time = std::chrono::high_resolution_clock::now();
 #ifdef USE_PAPI
             papi_turn_counters(false);
             papi_check_counters(parlay::worker_id());
             papi_wait_counters(false, parlay::num_workers());
 #endif
+            auto d = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
+            printf("%f\n", d.count());
         }
     }
 
