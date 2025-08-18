@@ -185,6 +185,8 @@ int main(int argc, char *argv[]) {
             }
             node* KDParallelRoot = pkd.get_root();
             auto bx = pkd.get_root_box();
+            parlay::sequence<kBoundedQueue<point, nn_pair>> bq =
+                parlay::sequence<kBoundedQueue<point, nn_pair>>::uninitialized(n);
 #ifdef USE_PAPI
             papi_reset_counters();
             papi_turn_counters(true);
@@ -192,9 +194,8 @@ int main(int argc, char *argv[]) {
             papi_wait_counters(true, parlay::num_workers());
 #endif
             parlay::parallel_for(0, test_batch_size, [&](size_t j) {
-                kBoundedQueue<point, nn_pair> bq;
                 size_t visNodeNum = 0;
-                pkd.k_nearest(KDParallelRoot, vec_to_search[j], NR_DIMENSION, bq, bx, visNodeNum);
+                pkd.k_nearest(KDParallelRoot, vec_to_search[j], NR_DIMENSION, bq[j], bx, visNodeNum);
             });
 #ifdef USE_PAPI
             papi_turn_counters(false);
