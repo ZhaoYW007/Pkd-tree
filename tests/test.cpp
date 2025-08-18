@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
             parlay::parallel_for(0, test_batch_size, [&](size_t j) {
                 kBoundedQueue<point, nn_pair> bq;
                 size_t visNodeNum = 0;
-                pkd.k_nearest(KDParallelRoot, vec_to_search[j], bq, bx, visNodeNum);
+                pkd.k_nearest(KDParallelRoot, vec_to_search[j], NR_DIMENSION, bq, bx, visNodeNum);
             });
 #ifdef USE_PAPI
             papi_turn_counters(false);
