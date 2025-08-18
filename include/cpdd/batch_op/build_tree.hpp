@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <algorithm>
 #include "../kdTreeParallel.h"
 #include "parlay/primitives.h"
 
@@ -30,7 +31,7 @@ void ParallelKDtree<point>::divide_rotate(slice In, splitter_s& pivots, dim_type
     uint_fast8_t d = (_split_rule == MAX_STRETCH_DIM ? pick_max_stretch_dim(bx, DIM) : dim);
     assert(d >= 0 && d < DIM);
 
-    std::ranges::nth_element(In.begin(), In.begin() + n / 2, In.end(),
+    std::nth_element(In.begin(), In.begin() + n / 2, In.end(),
                              [&](const point& p1, const point& p2) { return Num::Lt(p1.pnt[d], p2.pnt[d]); });
     pivots[idx] = splitter(In[n / 2].pnt[d], d);
 
@@ -136,12 +137,12 @@ typename ParallelKDtree<point>::node* ParallelKDtree<point>::build_inner_tree(bu
 template<typename point>
 typename ParallelKDtree<point>::points_iter ParallelKDtree<point>::serial_partition(slice In, dim_type d) {
     size_t n = In.size();
-    std::ranges::nth_element(In.begin(), In.begin() + n / 2, In.end(),
+    std::nth_element(In.begin(), In.begin() + n / 2, In.end(),
                              [&](const point& p1, const point& p2) { return Num::Lt(p1.pnt[d], p2.pnt[d]); });
-    std::ranges::subrange _2ndGroup = std::ranges::partition(
+    auto _2ndGroup = std::partition(
         In.begin(), In.begin() + n / 2, [&](const point& p) { return Num::Lt(p.pnt[d], In[n / 2].pnt[d]); });
     if (_2ndGroup.begin() == In.begin()) {  //* handle duplicated medians
-        _2ndGroup = std::ranges::partition(In.begin() + n / 2, In.end(),
+        _2ndGroup = std::partition(In.begin() + n / 2, In.end(),
                                            [&](const point& p) { return Num::Eq(p.pnt[d], In[n / 2].pnt[d]); });
     }
     return _2ndGroup.begin();
@@ -177,10 +178,10 @@ typename ParallelKDtree<point>::node* ParallelKDtree<point>::serial_build_recurs
     if (splitIter <= In.begin() + n / 2) {
         split = splitter(In[n / 2].pnt[d], d);
     } else if (splitIter != In.end()) {
-        auto minEleIter = std::ranges::min_element(
+        auto minEleIter = std::min_element(
             splitIter, In.end(), [&](const point& p1, const point& p2) { return Num::Lt(p1.pnt[d], p2.pnt[d]); });
         split = splitter(minEleIter->pnt[d], d);
-    } else if (In.end() == (diffEleIter = std::ranges::find_if_not(In, [&](const point& p) {
+    } else if (In.end() == (diffEleIter = std::find_if_not(In.begin(), In.end(), [&](const point& p) {
                                 return p.sameDimension(In[0]);
                             }))) {  //* check whether all elements are identical
         return alloc_dummy_leaf(In);
@@ -188,7 +189,7 @@ typename ParallelKDtree<point>::node* ParallelKDtree<point>::serial_build_recurs
         if (_split_rule == MAX_STRETCH_DIM) {  //* next recursion redirects to new dim
             return serial_build_recursive(In, Out, d, DIM, get_box(In));
         } else if (_split_rule == ROTATE_DIM) {  //* switch dim, break rotation order
-            points_iter compIter = diffEleIter == In.begin() ? std::ranges::prev(In.end()) : In.begin();
+            points_iter compIter = diffEleIter == In.begin() ? std::prev(In.end()) : In.begin();
             assert(compIter != diffEleIter);
             for (int i = 0; i < DIM; i++) {
                 if (!Num::Eq(diffEleIter->pnt[i], compIter->pnt[i])) {
@@ -201,9 +202,9 @@ typename ParallelKDtree<point>::node* ParallelKDtree<point>::serial_build_recurs
     }
 
     assert(
-        std::ranges::all_of(In.begin(), splitIter,
+        std::all_of(In.begin(), splitIter,
                             [&](point& p) { return Num::Lt(p.pnt[split.second], split.first); }) &&
-        std::ranges::all_of(splitIter, In.end(), [&](point& p) { return Num::Geq(p.pnt[split.second], split.first); }));
+        std::all_of(splitIter, In.end(), [&](point& p) { return Num::Geq(p.pnt[split.second], split.first); }));
 
     box lbox(bx), rbox(bx);
     lbox.second.pnt[d] = split.first;  //* loose

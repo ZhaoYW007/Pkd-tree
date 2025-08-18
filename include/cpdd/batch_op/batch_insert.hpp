@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include "../kdTreeParallel.h"
 #include "inner_tree.hpp"
 #include "parlay/slice.h"
@@ -131,8 +132,8 @@ typename ParallelKDtree<point>::node* ParallelKDtree<point>::batchInsert_recusiv
 
     if (n <= SERIAL_BUILD_CUTOFF) {
         interior* TI = static_cast<interior*>(T);
-        auto _2ndGroup = std::ranges::partition(
-            In, [&](const point& p) { return Num::Lt(p.pnt[TI->split.second], TI->split.first); });
+        auto _2ndGroup = std::partition(
+            In.begin(), In.end(), [&](const point& p) { return Num::Lt(p.pnt[TI->split.second], TI->split.first); });
 
         //* rebuild
         if (inbalance_node(TI->left->size + _2ndGroup.begin() - In.begin(), TI->size + n)) {
