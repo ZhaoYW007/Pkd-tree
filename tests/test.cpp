@@ -48,6 +48,7 @@ void host_parse_arguments(int argc, char *argv[]) {
  */
 int main(int argc, char *argv[]) {
     using vectorT = PointType<coord, 3>;
+    using point = PointType<coord, 3>;
     using tree = ParallelKDtree<vectorT>;
     using box = typename tree::box;
     using node = typename tree::node;
