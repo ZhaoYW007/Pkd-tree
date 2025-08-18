@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <cstddef>
 
+#define USE_PAPI (1)
+
 #ifdef USE_PAPI
 #include "parlay/papi/papi_util_impl.h"
 #endif
@@ -21,8 +23,6 @@
 #include "utils/random_generator.hpp"
 
 using namespace std;
-
-const int maxTopLevelThreads = 3;
 
 /* Argv for main function */
 int64_t total_insert_size;
@@ -60,6 +60,7 @@ int main(int argc, char *argv[]) {
     srand(0);
     rn_gen::init();
     std::chrono::high_resolution_clock::time_point start_time, end_time;
+    double avg_time = 0.0;
 
     printf("------------- Data Structure Init ------------\n");
     tree pkd;
@@ -103,7 +104,7 @@ int main(int argc, char *argv[]) {
     papi_init_program(parlay::num_workers());
 #endif
 
-    if(test_type == 1) {       
+    if(test_type == 1) {
         printf("------------- Insert ------------\n");
         parlay::sequence<vectorT> vec_to_search(test_batch_size);
         for(int i = 0, offset = total_insert_size; i < test_round; i++, offset += test_batch_size) {
@@ -136,6 +137,7 @@ int main(int argc, char *argv[]) {
 #endif
             auto d = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
             printf("%f\n", d.count());
+            avg_time += d.count();
         }
     }
     else if(test_type == 2 || test_type == 3) {
@@ -186,6 +188,7 @@ int main(int argc, char *argv[]) {
 #endif
             auto d = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
             printf("%f\n", d.count());
+            avg_time += d.count();
         }
     }
     else if(test_type == 4) {
@@ -235,7 +238,13 @@ int main(int argc, char *argv[]) {
 #endif
             auto d = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
             printf("%f\n", d.count());
+            avg_time += d.count();
         }
     }
+#ifdef USE_PAPI
+    papi_print_counters(1);
+#endif
+    avg_time /= test_round;
+    printf("Average Time: %f\n", avg_time);
     return 0;
 }
