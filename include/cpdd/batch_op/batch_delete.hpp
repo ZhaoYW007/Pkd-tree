@@ -2,7 +2,7 @@
 
 #include "../kdTreeParallel.h"
 #include "inner_tree.hpp"
-#include <ranges>
+#include <algorithm>
 #include <utility>
 
 namespace cpdd {
@@ -31,9 +31,9 @@ typename ParallelKDtree<point>::node_box ParallelKDtree<point>::pointDelete_recu
             return node_box(T, box(p, p));
         }
 
-        auto it = std::ranges::find(TL->pts.begin(), TL->pts.begin() + TL->size, p);
+        auto it = std::find(TL->pts.begin(), TL->pts.begin() + TL->size, p);
         assert(it != TL->pts.begin() + TL->size);
-        std::ranges::iter_swap(it, TL->pts.begin() + TL->size - 1);
+        std::iter_swap(it, TL->pts.begin() + TL->size - 1);
         TL->size--;
         assert(TL->size >= 0);
         return node_box(T, get_box(TL->pts.cut(0, TL->size)));
@@ -178,9 +178,9 @@ typename ParallelKDtree<point>::node_box ParallelKDtree<point>::batchDelete_recu
 
         auto it = TL->pts.begin(), end = TL->pts.begin() + TL->size;
         for (int i = 0; i < In.size(); i++) {
-            it = std::ranges::find(TL->pts.begin(), end, In[i]);
+            it = std::find(TL->pts.begin(), end, In[i]);
             assert(it != end);
-            std::ranges::iter_swap(it, --end);
+            std::iter_swap(it, --end);
         }
 
         assert(std::distance(TL->pts.begin(), end) == TL->size - In.size());
@@ -191,8 +191,8 @@ typename ParallelKDtree<point>::node_box ParallelKDtree<point>::batchDelete_recu
 
     if (In.size() <= SERIAL_BUILD_CUTOFF) {
         interior* TI = static_cast<interior*>(T);
-        auto _2ndGroup = std::ranges::partition(
-            In, [&](const point& p) { return Num::Lt(p.pnt[TI->split.second], TI->split.first); });
+        auto _2ndGroup = std::partition(
+            In.begin(), In.end(), [&](const point& p) { return Num::Lt(p.pnt[TI->split.second], TI->split.first); });
 
         bool putTomb =
             hasTomb && (inbalance_node(TI->left->size - (_2ndGroup.begin() - In.begin()), TI->size - In.size()) ||
@@ -291,9 +291,9 @@ typename ParallelKDtree<point>::node_box ParallelKDtree<point>::batchDelete_recu
 
         auto it = TL->pts.begin(), end = TL->pts.begin() + TL->size;
         for (int i = 0; TL->size && i < In.size(); i++) {
-            it = std::ranges::find(TL->pts.begin(), end, In[i]);
+            it = std::find(TL->pts.begin(), end, In[i]);
             if (it != end) {  // NOTE: find a point
-                std::ranges::iter_swap(it, --end);
+                std::iter_swap(it, --end);
                 TL->size -= 1;
             }
         }
@@ -303,8 +303,8 @@ typename ParallelKDtree<point>::node_box ParallelKDtree<point>::batchDelete_recu
     if (In.size() <= SERIAL_BUILD_CUTOFF) {
         // if (In.size()) {
         interior* TI = static_cast<interior*>(T);
-        auto _2ndGroup = std::ranges::partition(
-            In, [&](const point& p) { return Num::Lt(p.pnt[TI->split.second], TI->split.first); });
+        auto _2ndGroup = std::partition(
+            In.begin(), In.end(), [&](const point& p) { return Num::Lt(p.pnt[TI->split.second], TI->split.first); });
 
         dim_type nextDim = (d + 1) % DIM;
 
