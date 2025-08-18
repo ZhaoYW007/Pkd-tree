@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <cstddef>
 
-#define USE_PAPI (1)
+// #define USE_PAPI (1)
 
 #ifdef USE_PAPI
 #include "parlay/papi/papi_util_impl.h"
