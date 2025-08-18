@@ -141,11 +141,11 @@ typename ParallelKDtree<point>::points_iter ParallelKDtree<point>::serial_partit
                              [&](const point& p1, const point& p2) { return Num::Lt(p1.pnt[d], p2.pnt[d]); });
     auto _2ndGroup = std::partition(
         In.begin(), In.begin() + n / 2, [&](const point& p) { return Num::Lt(p.pnt[d], In[n / 2].pnt[d]); });
-    if (_2ndGroup.begin() == In.begin()) {  //* handle duplicated medians
+    if (_2ndGroup == In.begin()) {  //* handle duplicated medians
         _2ndGroup = std::partition(In.begin() + n / 2, In.end(),
                                            [&](const point& p) { return Num::Eq(p.pnt[d], In[n / 2].pnt[d]); });
     }
-    return _2ndGroup.begin();
+    return _2ndGroup;
 }
 
 template<typename point>
