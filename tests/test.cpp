@@ -53,6 +53,7 @@ int main(int argc, char *argv[]) {
     using box = typename tree::box;
     using node = typename tree::node;
     using nn_pair = std::pair<std::reference_wrapper<point>, coord>;
+    using points = typename tree::points;
 
     printf("------------------- Start ---------------------\n");
     host_parse_arguments(argc, argv);
@@ -163,28 +164,29 @@ int main(int argc, char *argv[]) {
                 });
             }
 #ifdef USE_PAPI
-        papi_reset_counters();
-        papi_turn_counters(true);
-        papi_check_counters(parlay::worker_id());
-        papi_wait_counters(true, parlay::num_workers());
+            papi_reset_counters();
+            papi_turn_counters(true);
+            papi_check_counters(parlay::worker_id());
+            papi_wait_counters(true, parlay::num_workers());
 #endif
-        start_time = std::chrono::high_resolution_clock::now();
-        parlay::parallel_for(0, test_batch_size, [&](size_t j) {
-            size_t visLeafNum, visInterNum;
-            size_t cnt = pkd.range_count(boxes[j], visLeafNum, visInterNum);
-            if(test_type == 3) {
-                parlay::sequence<vectorT> res(cnt);
-                pkd.range_query_serial(boxes[j], res);
-            }
-        });
-        end_time = std::chrono::high_resolution_clock::now();
+            start_time = std::chrono::high_resolution_clock::now();
+            parlay::parallel_for(0, test_batch_size, [&](size_t j) {
+                size_t visLeafNum, visInterNum;
+                size_t cnt = pkd.range_count(boxes[j], visLeafNum, visInterNum);
+                if(test_type == 3) {
+                    parlay::sequence<vectorT> res(cnt);
+                    pkd.range_query_serial(boxes[j], res);
+                }
+            });
+            end_time = std::chrono::high_resolution_clock::now();
 #ifdef USE_PAPI
-        papi_turn_counters(false);
-        papi_check_counters(parlay::worker_id());
-        papi_wait_counters(false, parlay::num_workers());
+            papi_turn_counters(false);
+            papi_check_counters(parlay::worker_id());
+            papi_wait_counters(false, parlay::num_workers());
 #endif
-        auto d = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
-        printf("%f\n", d.count());
+            auto d = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
+            printf("%f\n", d.count());
+        }
     }
     else if(test_type == 4) {
         printf("------------- kNN ------------\n");
@@ -205,8 +207,15 @@ int main(int argc, char *argv[]) {
             }
             node* KDParallelRoot = pkd.get_root();
             auto bx = pkd.get_root_box();
+
+            points wp = points::uninitialized(test_batch_size);
+            parlay::copy(vec_to_search, wp);
+            parlay::sequence<nn_pair> Out(expected_box_size * test_batch_size, nn_pair(std::ref(wp[0]), 0));
             parlay::sequence<kBoundedQueue<point, nn_pair>> bq =
                 parlay::sequence<kBoundedQueue<point, nn_pair>>::uninitialized(test_batch_size);
+            parlay::parallel_for(0, test_batch_size, [&](size_t i) {
+                bq[i].resize(Out.cut(i * expected_box_size, i * expected_box_size + expected_box_size));
+            });
 #ifdef USE_PAPI
             papi_reset_counters();
             papi_turn_counters(true);
@@ -228,6 +237,5 @@ int main(int argc, char *argv[]) {
             printf("%f\n", d.count());
         }
     }
-
     return 0;
 }
