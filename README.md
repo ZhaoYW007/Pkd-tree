@@ -3,6 +3,7 @@
 ```
 export PFM_HOME=/home/yiweiz3/papi/src/libpfm4
 export PAPI_HOME=/home/yiweiz3/papi/src/install
+export LD_LIBRARY_PATH=${PFM_HOME}/lib:${LD_LIBRARY_PATH}
 ```
 
 # Pkd-tree: a parallel kd-tree with batch update
