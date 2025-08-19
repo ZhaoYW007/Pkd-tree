@@ -1,3 +1,10 @@
+## Environment Setup
+
+```
+export PFM_HOME=/home/yiweiz3/papi/src/libpfm4
+export PAPI_HOME=/home/yiweiz3/papi/src/install
+```
+
 # Pkd-tree: a parallel kd-tree with batch update
 
 Pkd-tree is an implementation of kd-tree that is:
@@ -125,7 +132,7 @@ In default, the Pkd-tree stores all coordinates of points in 64-bit integer (`lo
 
 ## Test Framework Format
 
-Implemented in `tests/testFramework.h` and `tests/test.cpp`. 
+Implemented in `tests/testFramework.h` and `tests/test.cpp`.
 - **The `testFramework.h` contains how to call the API of `Pkd-tree` with detailed comment, please take a look at it before using.**
 - The `test.cpp` is the entry of the `main` function.
 
@@ -193,12 +200,12 @@ The execution flow is shown below:
  If you use our code, please cite our paper:
  ```{latex}
 @misc{men2025parallelkdtreebatchupdates,
-      title={Parallel $k$d-tree with Batch Updates}, 
+      title={Parallel $k$d-tree with Batch Updates},
       author={Ziyang Men and Zheqi Shen and Yan Gu and Yihan Sun},
       year={2025},
       eprint={2411.09275},
       archivePrefix={arXiv},
       primaryClass={cs.DS},
-      url={https://arxiv.org/abs/2411.09275}, 
+      url={https://arxiv.org/abs/2411.09275},
 }
 ```
