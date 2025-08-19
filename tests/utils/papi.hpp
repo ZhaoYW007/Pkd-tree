@@ -153,30 +153,6 @@ void papi_wait_counters(bool on, int num_workers) {
 #endif
 }
 
-bool papi_check_counters(int id) {
-#ifdef USE_PAPI
-    if (thread_local_counter_on == nullptr) {
-        return false;
-    }
-    // int id = parlay::worker_id();
-    // assert(id < parlay::num_workers());
-    if ((!thread_local_counter_on[id]) && counter_turnon) {
-        // printf("Thread %d turn on counters\n", id);
-        papi_start_counters(id);
-        thread_local_counter_on[id] = true;
-        return true;
-    } else if ((thread_local_counter_on[id]) && !counter_turnon) {
-        // printf("Thread %d turn off counters\n", id);
-        // printf("tlco=%d\n", thread_local_counter_on[id]);
-        papi_stop_counters(id);
-        thread_local_counter_on[id] = false;
-        // printf("tlco=%d\n", thread_local_counter_on[id]);
-        return true;
-    }
-#endif
-    return false;
-}
-
 void papi_start_counters(int id) {
 #ifdef USE_PAPI
     {
@@ -297,4 +273,29 @@ void papi_print_counters(long long num_operations) {
     }
 #endif
 }
+
+bool papi_check_counters(int id) {
+#ifdef USE_PAPI
+    if (thread_local_counter_on == nullptr) {
+        return false;
+    }
+    // int id = parlay::worker_id();
+    // assert(id < parlay::num_workers());
+    if ((!thread_local_counter_on[id]) && counter_turnon) {
+        // printf("Thread %d turn on counters\n", id);
+        papi_start_counters(id);
+        thread_local_counter_on[id] = true;
+        return true;
+    } else if ((thread_local_counter_on[id]) && !counter_turnon) {
+        // printf("Thread %d turn off counters\n", id);
+        // printf("tlco=%d\n", thread_local_counter_on[id]);
+        papi_stop_counters(id);
+        thread_local_counter_on[id] = false;
+        // printf("tlco=%d\n", thread_local_counter_on[id]);
+        return true;
+    }
+#endif
+    return false;
+}
+
 #endif
