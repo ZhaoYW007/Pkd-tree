@@ -73,8 +73,8 @@ target_include_directories(test PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 set(PAPI_HOME_ENV "$ENV{PAPI_HOME}")
 target_include_directories(test PRIVATE ${PAPI_HOME_ENV}/include)
-target_link_directories(test PRIVATE ${PAPI_HOME_ENV}/lib)
-target_link_libraries(test PRIVATE papi)
+set(PAPI_LIBRARY "${PAPI_HOME_ENV}/lib/libpapi.so.6.0")
+target_link_libraries(test PRIVATE ${PAPI_LIBRARY})
 
 message(STATUS "PAPI_HOME_ENV = ${PAPI_HOME_ENV}")
 message(STATUS "Looking for: ${PAPI_HOME_ENV}/include/papi.h")
