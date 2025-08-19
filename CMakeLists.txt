@@ -74,8 +74,8 @@ target_link_libraries(test PUBLIC kdTreeParallel)
 target_include_directories(test PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(test PUBLIC ${PAPI_HOME}/include)
 
-find_library(PAPI_LIBRARY papi PATHS ${PAPI_HOME}/lib)
-target_link_libraries(test PRIVATE papi)
+find_library(PAPI_LIBRARY NAMES papi PATHS ${PAPI_HOME}/lib)
+target_link_libraries(test PRIVATE ${PAPI_LIBRARY})
 
 find_package(Boost REQUIRED)
 add_executable(rtree ${PROJECT_SOURCE_DIR}/tests/rtree.cpp)
