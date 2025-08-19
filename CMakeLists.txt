@@ -71,12 +71,13 @@ add_executable(test ${PROJECT_SOURCE_DIR}/tests/test.cpp)
 target_link_libraries(test PUBLIC kdTreeParallel)
 target_include_directories(test PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
-target_include_directories(test PRIVATE ${PAPI_HOME}/include)
-target_link_directories(test PRIVATE ${PAPI_HOME}/lib)
+set(PAPI_HOME_ENV "$ENV{PAPI_HOME}")
+target_include_directories(test PRIVATE ${PAPI_HOME_ENV}/include)
+target_link_directories(test PRIVATE ${PAPI_HOME_ENV}/lib)
 target_link_libraries(test PRIVATE papi)
 
-message(STATUS "PAPI_HOME = ${PAPI_HOME}")
-message(STATUS "Looking for: ${PAPI_HOME}/include/papi.h")
+message(STATUS "PAPI_HOME_ENV = ${PAPI_HOME_ENV}")
+message(STATUS "Looking for: ${PAPI_HOME_ENV}/include/papi.h")
 
 # find_package(Boost REQUIRED)
 # add_executable(rtree ${PROJECT_SOURCE_DIR}/tests/rtree.cpp)
@@ -87,9 +88,9 @@ if(JEMA)
 	target_link_libraries(test PUBLIC libjemalloc.so)
 endif()
 
-add_executable(data_generator ${PROJECT_SOURCE_DIR}/tests/data_generate.cpp)
-target_link_libraries(data_generator PUBLIC kdTreeParallel)
-target_include_directories(data_generator PUBLIC ${PROJECT_SOURCE_DIR}/include)
+# add_executable(data_generator ${PROJECT_SOURCE_DIR}/tests/data_generate.cpp)
+# target_link_libraries(data_generator PUBLIC kdTreeParallel)
+# target_include_directories(data_generator PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 # CGAL
 if(CGAL)
