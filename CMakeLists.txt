@@ -67,9 +67,13 @@ install(TARGETS kdTreeParallel
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
+find_library(PAPI_LIBRARY papi PATHS ${PAPI_HOME}/lib)
+
 add_executable(test ${PROJECT_SOURCE_DIR}/tests/test.cpp)
 target_link_libraries(test PUBLIC kdTreeParallel)
 target_include_directories(test PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_link_libraries(test PUBLIC ${PAPI_LIBRARY})
+target_include_directories(test PUBLIC ${PAPI_HOME}/include)
 
 find_package(Boost REQUIRED)
 add_executable(rtree ${PROJECT_SOURCE_DIR}/tests/rtree.cpp)
