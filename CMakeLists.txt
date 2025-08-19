@@ -67,20 +67,21 @@ install(TARGETS kdTreeParallel
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-find_library(PAPI_LIBRARY papi PATHS ${PAPI_HOME}/lib)
-
 add_executable(test ${PROJECT_SOURCE_DIR}/tests/test.cpp)
 target_link_libraries(test PUBLIC kdTreeParallel)
 target_include_directories(test PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_include_directories(test PRIVATE ${PAPI_HOME}/include)
 
+target_include_directories(test PRIVATE ${PAPI_HOME}/include)
 target_link_directories(test PRIVATE ${PAPI_HOME}/lib)
 target_link_libraries(test PRIVATE papi)
 
-find_package(Boost REQUIRED)
-add_executable(rtree ${PROJECT_SOURCE_DIR}/tests/rtree.cpp)
-target_link_libraries(rtree PUBLIC kdTreeParallel ${Boost_LIBRARIES})
-target_include_directories(rtree PUBLIC ${PROJECT_SOURCE_DIR}/include ${Boost_INCLUDE_DIRS})
+message(STATUS "PAPI_HOME = ${PAPI_HOME}")
+message(STATUS "Looking for: ${PAPI_HOME}/include/papi.h")
+
+# find_package(Boost REQUIRED)
+# add_executable(rtree ${PROJECT_SOURCE_DIR}/tests/rtree.cpp)
+# target_link_libraries(rtree PUBLIC kdTreeParallel ${Boost_LIBRARIES})
+# target_include_directories(rtree PUBLIC ${PROJECT_SOURCE_DIR}/include ${Boost_INCLUDE_DIRS})
 
 if(JEMA)
 	target_link_libraries(test PUBLIC libjemalloc.so)
