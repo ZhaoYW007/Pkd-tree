@@ -13,7 +13,7 @@
 #define USE_PAPI (1)
 
 #ifdef USE_PAPI
-#include "parlay/papi/papi_util_impl.h
+#include "parlay/papi/papi_util_impl.h"
 #endif
 
 #include "parlay/parallel.h"
